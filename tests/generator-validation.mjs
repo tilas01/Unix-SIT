@@ -206,6 +206,53 @@ for (const c of CASES) {
     window.close();
 }
 
+/* ── The smart analysis must have somewhere to appear ──────────────────────
+ *
+ * validateConfigurations() has written its findings to `#global-warnings` on
+ * every change since it was written, and that element was not in the markup -
+ * so no reader has ever seen one. No encryption, Nvidia under a libre policy,
+ * dwm on Wayland, two applications doing the same job: all of it computed
+ * correctly and posted to nothing.
+ *
+ * Driven rather than grepped, because the element existing is not the point;
+ * the text arriving in it is. A container that is present and never written to
+ * is the same defect with better markup.
+ */
+{
+    const { window } = await loadPage(JSDOM, VirtualConsole, server.origin, 'index.html', { wait: 400 });
+    for (let i = 0; i < 100 && typeof window.generateOutput !== 'function'; i++) {
+        await new Promise(r => setTimeout(r, 100));
+    }
+    installLayoutShims(window);
+    const doc = window.document;
+
+    const box = doc.getElementById('global-warnings');
+    ok(!!box,
+       'index.html has no #global-warnings, so every smart-analysis finding is written ' +
+       'to nothing and no reader ever sees one');
+
+    if (box) {
+        /* Two applications that do the same job is the cheapest condition to
+           trigger and needs no other answers, so this tests the plumbing
+           rather than a particular rule. */
+        for (const v of ['pfetch', 'fastfetch']) {
+            const el = doc.querySelector(`input[name="post_apps"][value="${v}"]`);
+            if (el) { el.checked = true; }
+        }
+        window.validateConfigurations();
+        await new Promise(r => setTimeout(r, 100));
+
+        ok((window.smartAnalysisWarnings || []).length > 0,
+           'ticking two system information tools produced no smart-analysis finding');
+        ok(box.style.display === 'block',
+           'the smart analysis found something and left its container hidden');
+        ok(/pfetch/.test(box.textContent) && /fastfetch/.test(box.textContent),
+           'the smart-analysis container does not name the two applications it is warning ' +
+           `about - it holds: ${JSON.stringify((box.textContent || '').slice(0, 80))}`);
+    }
+    window.close();
+}
+
 await server.close();
 
 if (failures.length) {

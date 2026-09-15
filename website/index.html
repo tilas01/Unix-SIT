@@ -826,10 +826,25 @@ Website: https://github.com/htop-dev/htop">ℹ️</span> <span class="app-desc">
                              
 </label>
                             <label class="app-card" oncontextmenu="window.open('wiki.html', '_blank'); return false;">
+                                <input type="checkbox" name="post_apps" value="btop">
+                                <span class="app-icon">📈</span> <a href="https://github.com/aristocratos/btop" target="_blank">btop</a> <span class="info-tooltip-icon" title="btop
+---
+Resource monitor with a mouse-driven interface. Shows CPU, memory, disks, network and processes.
+
+vs htop: btop draws graphs and handles the mouse; htop is lighter and is on almost every machine already.
+
+Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
+Source: 📁 Arch Extra
+Website: https://github.com/aristocratos/btop">ℹ️</span> <span class="app-desc">Monitor</span>
+                             
+</label>
+                            <label class="app-card" oncontextmenu="window.open('wiki.html', '_blank'); return false;">
                                 <input type="checkbox" name="post_apps" value="pfetch">
                                 <span class="app-icon">🖥️</span> <a href="https://github.com/dylanaraps/pfetch" target="_blank">pfetch</a> <span class="info-tooltip-icon" title="pfetch
 --
 Minimal system information display tool written in POSIX shell
+
+vs fastfetch: pfetch has no dependencies and starts instantly; fastfetch is compiled C and detects far more. Picking both means two greetings every time a shell opens. See the wiki.
 
 Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
 Source: 📁 Arch Extra
@@ -841,6 +856,8 @@ Website: https://github.com/dylanaraps/pfetch">ℹ️</span> <span class="app-de
                                 <span class="app-icon">⚡</span> <a href="https://github.com/fastfetch-cli/fastfetch" target="_blank">fastfetch</a> <span class="info-tooltip-icon" title="fastfetch
 --
 Fast system info tool written in C — like neofetch but actively maintained
+
+vs pfetch: fastfetch reports more (GPU, display, packages) and is configured in JSON; pfetch is a few kilobytes of shell. Picking both means two greetings every time a shell opens. See the wiki.
 
 Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
 Source: 📁 Arch Extra
@@ -854,6 +871,8 @@ Website: https://github.com/fastfetch-cli/fastfetch">ℹ️</span> <span class="
 --
 Lightweight GTK file manager (Xfce)
 
+vs Nautilus: Thunar is far the smaller dependency and does not pull in a desktop environment. Only one file manager can be the default handler for folders. See the wiki.
+
 Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
 Source: 📁 Arch Extra">ℹ️</span> <span class="app-desc">Files</span>
                              
@@ -863,6 +882,8 @@ Source: 📁 Arch Extra">ℹ️</span> <span class="app-desc">Files</span>
                                 <span class="app-icon">📂</span> Nautilus <span class="info-tooltip-icon" title="Nautilus
 --
 GNOME's default file manager
+
+vs Thunar: Nautilus integrates better under GNOME and brings GNOME libraries with it either way. Only one file manager can be the default handler for folders. See the wiki.
 
 Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
 Source: 📁 Arch Extra">ℹ️</span> <span class="app-desc">Files</span>
@@ -921,6 +942,28 @@ Full office suite — Libre alternative to Microsoft Office
 Build Integrity: Mostly Reproducible (Safe & verifiable, minor CI metadata differences)
 Source: 📁 Arch Extra
 Website: https://www.libreoffice.org/">ℹ️</span> <span class="app-desc">Office</span>
+                             
+</label>
+                            <label class="app-card" oncontextmenu="window.open('wiki.html', '_blank'); return false;">
+                                <input type="checkbox" name="post_apps" value="steam">
+                                <span class="app-icon">🎮</span> <a href="https://store.steampowered.com/" target="_blank">Steam</a> <span class="info-tooltip-icon" title="Steam
+---
+Games platform. Proprietary, and excluded automatically under the libre policy.
+
+Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
+Source: 📁 Arch Extra
+Website: https://store.steampowered.com/">ℹ️</span> <span class="app-desc">Games</span>
+                             
+</label>
+                            <label class="app-card" oncontextmenu="window.open('wiki.html', '_blank'); return false;">
+                                <input type="checkbox" name="post_apps" value="discord">
+                                <span class="app-icon">💬</span> <a href="https://discord.com/" target="_blank">Discord</a> <span class="info-tooltip-icon" title="Discord
+---
+Chat. Proprietary client and server, and excluded automatically under the libre policy.
+
+Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
+Source: 📁 Arch Extra
+Website: https://discord.com/">ℹ️</span> <span class="app-desc">Chat</span>
                              
 </label>
                             <div class="app-category-header" style="grid-column: 1 / -1; margin-top: 0.5rem;">🔧 System</div>
@@ -997,6 +1040,19 @@ Hardened SSH daemon — auto-generates Ed25519 keys, disables root login, passwo
 Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
 Source: 📁 Arch Core
 Website: https://github.com/openssh/openssh-portable">ℹ️</span> <span class="app-desc">SSH Server</span>
+                             
+</label>
+                            <label class="app-card" oncontextmenu="window.open('wiki.html', '_blank'); return false;">
+                                <input type="checkbox" name="post_apps" value="docker">
+                                <span class="app-icon">🐳</span> <a href="https://docs.docker.com/" target="_blank">Docker</a> <span class="info-tooltip-icon" title="Docker
+---
+Container runtime.
+
+Adding your user to the docker group is root-equivalent: anyone in it can mount the host filesystem into a container as root. The generator asks before doing it.
+
+Build Integrity: 100% Reproducible (Verifiable from Source - Bit-for-bit identical)
+Source: 📁 Arch Extra
+Website: https://docs.docker.com/">ℹ️</span> <span class="app-desc">Containers</span>
                              
 </label>
                             <label class="app-card" oncontextmenu="window.open('wiki.html', '_blank'); return false;">
@@ -1406,6 +1462,15 @@ Website: https://github.com/hephaest0s/usbkill">ℹ️</span> <span class="app-d
                             </label>
                         </div>
                     </div>
+
+                    <!-- Smart analysis. validateConfigurations() has written its
+                         findings here on every change since it was written, and
+                         this container did not exist, so none of them has ever
+                         been seen: no encryption, Nvidia under a libre policy,
+                         dwm on Wayland, two applications doing the same job.
+                         Above the error box because these are things worth
+                         knowing rather than things blocking the button. -->
+                    <div id="global-warnings" style="display:none; margin-bottom: 1rem;"></div>
 
                     <div id="generate-error-box" class="alert error" style="display:none; margin-bottom: 1rem; border: 1px solid var(--accent-red); padding: 1rem; cursor: pointer;">
                         <strong>⚠️ <span id="error-count">0</span> Missing/Invalid Fields:</strong>

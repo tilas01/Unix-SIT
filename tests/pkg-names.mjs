@@ -91,8 +91,16 @@ for (const os of systems) {
    coverage than it is. Searched across the two emitters and the question data,
    which is everywhere a package name can originate. */
 const sources = ['manual-guide.js', 'manual-data.js', 'script.js'].map(read).join('\n');
+
+/* Packages the application catalogue can emit. Taken from the parsed table
+   rather than by searching os-install.js as text, which would let every entry
+   vouch for itself and quietly turn this check off. */
+const fromCatalogue = new Set();
+for (const app of (w.APPS || [])) for (const pkg of app.pkgs) fromCatalogue.add(pkg);
+
 for (const os of systems) {
     const dead = Object.keys(TABLES[os])
+        .filter(k => !fromCatalogue.has(k))
         /* A whole-word search, because a package name reaches the output in
            more shapes than a quoted literal. `terminus-font` is spliced into a
            template string immediately before an escape, so a test matching on

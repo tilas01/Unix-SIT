@@ -1411,6 +1411,35 @@ const STEPS = [
         return 'On ' + osName(s) + '. ' + parts.join(' ');
     }
 },
+{
+    /* How the tools get onto the machine, which the generator has always asked
+       and this side never did. It is a packaging choice rather than a tool:
+       the same five daemons either as five signed binaries or as one that
+       dispatches to whichever you invoke.
+
+       Only asked when something was selected - a question about how to install
+       nothing is a question with no answer. */
+    id: 'security_tools_packaging',
+    section: 'Security',
+    title: 'Separate binaries, or the all-in-one suite?',
+    help: 'The same tools either way. The suite is one signed binary that ' +
+          'dispatches to whichever you ask for, so there is one hash and one ' +
+          'signature to check instead of five, and one file to update. ' +
+          'Separate binaries let you install only what you want and leave the ' +
+          'rest off the disk entirely.',
+    wiki: 'suite-installer',
+    when: s => Array.isArray(s.security_tools) && s.security_tools.length > 0,
+    type: 'choice',
+    options: [
+        { value: 'separate', label: 'Separate binaries', recommended: true,
+          desc: 'One binary per tool. Only what you chose is installed, and a ' +
+                'tool you never enable is not on the disk to be found.' },
+        { value: 'suite', label: 'One all-in-one binary',
+          desc: 'unix-security-suite. One hash and one signature to verify, ' +
+                'one file to keep updated, and it carries every tool whether ' +
+                'or not you enable them. This is the build the site recommends.' }
+    ]
+},
 /* ── Duress PINs ────────────────────────────────────────────────────────────
    Only offered when scarecrow is installed and the disk is actually encrypted:
    a duress PIN erases a LUKS header, and there is no header to erase on an
@@ -1570,24 +1599,45 @@ const STEPS = [
     help: 'Installed and configured after the first boot, not during the ' +
           'base install. Anything needing a decision from you is asked at ' +
           'that point rather than guessed.',
+    /* Two applications that do the same job. Not blocked, and not treated as a
+       mistake - but named, with what actually separates them, because working
+       down a list of checkboxes is how somebody ends up with two of something
+       without meaning to. Same table as the generator's smart analysis, so the
+       two front ends cannot end up telling the reader different things. */
+    note: function (s) {
+        if (typeof window === 'undefined' || typeof window.appOverlaps !== 'function') return '';
+        var hits = window.appOverlaps(s.apps || []);
+        if (!hits.length) return '';
+        return hits.map(function (o) {
+            return window.appOverlapText(o).join(' ');
+        }).join(' ');
+    },
     wiki: 'advanced-config',
     optional: true,
     type: 'multi',
-    options: [
-        { value: 'git', label: 'git', recommended: true, desc: 'Asks for your name and email.' },
-        { value: 'neovim', label: 'neovim', desc: 'Editor. Themed to match your palette.' },
-        { value: 'kitty', label: 'kitty', desc: 'GPU terminal. Themed to match your palette.' },
-        { value: 'alacritty', label: 'alacritty', desc: 'GPU terminal, minimal.' },
-        { value: 'firefox', label: 'firefox', desc: 'Browser.' },
-        { value: 'chromium', label: 'chromium', desc: 'Browser.' },
-        { value: 'thunar', label: 'thunar', desc: 'File manager.' },
-        { value: 'mpv', label: 'mpv', desc: 'Media player.' },
-        { value: 'btop', label: 'btop', desc: 'Process monitor.' },
-        { value: 'openssh', label: 'openssh', desc: 'Asks whether to permit root login and password auth.' },
-        { value: 'docker', label: 'docker', desc: 'Asks whether to add you to the docker group, which is root-equivalent.' },
-        { value: 'steam', label: 'steam', desc: 'Proprietary. Excluded under a libre policy.' },
-        { value: 'discord', label: 'discord', desc: 'Proprietary. Excluded under a libre policy.' }
-    ]
+    /* Built from the shared catalogue rather than written out here.
+
+       These two lists had drifted to 34 options against 13, with four the
+       walkthrough offered and the generator did not — so the same walkthrough
+       and generator produced genuinely different machines from what a reader
+       would call the same answers. Reading one table is what stops that
+       happening again; `tests/app-parity.mjs` fails if either front end starts
+       keeping its own list.
+
+       An AUR-only application is marked in its label rather than hidden,
+       because on Arch it is a real option with a real cost, and on a system
+       with no AUR the emitter drops it and says so. */
+    options: (function () {
+        var cat = (typeof window !== 'undefined' && window.APPS) || [];
+        return cat.map(function (a) {
+            return {
+                value: a.id,
+                label: a.label + (a.aur ? ' (AUR)' : ''),
+                recommended: a.id === 'git',
+                desc: a.desc || a.blurb
+            };
+        });
+    })()
 },
 {
     id: 'extra_packages',

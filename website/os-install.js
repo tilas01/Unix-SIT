@@ -227,6 +227,25 @@
             'ttf-cascadia-code-nerd': null,
             'ttf-hack-nerd': null,
 
+
+            /* The six the AUR carries on Arch. Resolved against
+               packages.gentoo.org rather than assumed: discord and vscodium
+               are in the main tree, the other four are not. */
+            'discord': 'net-im/discord',
+            'vscodium': 'app-editors/vscodium',
+            /* In overlays rather than the tree - see PKG_OVERLAY below, which
+               names the overlay and how to enable it. A bare emerge for one of
+               these fails with "no ebuilds to satisfy", which reads as the
+               guide being wrong rather than the repository being absent. */
+            'librewolf': null,
+            'ungoogled-chromium': null,
+            /* games-util/steam-launcher lives in the steam overlay, not the
+               main tree. */
+            'steam': null,
+            /* An AUR helper. There is no AUR here for it to help with, and
+               emerge is the equivalent it would be wrapping. */
+            'paru': null,
+
             'base': null,              // the stage3 tarball is the base system
             'zram-generator': null     // Gentoo configures zram through its own init scripts
         },
@@ -420,6 +439,23 @@
             'ttf-cascadia-code-nerd': null,
             'ttf-hack-nerd': null,
 
+
+            /* The six the AUR carries on Arch, checked against the Bookworm
+               arm64 index. LibreWolf, VSCodium and ungoogled-chromium each
+               publish their own apt repository rather than appearing in
+               Debian, and adding a third-party repository hands its owner the
+               ability to replace any package at the next upgrade - so the
+               guide names them rather than quietly adding the source. */
+            'librewolf': null,
+            'vscodium': null,
+            'ungoogled-chromium': null,
+            'discord': null,
+            /* Debian's steam package is architecture `all` wrapping an i386
+               client. There is nothing in it that runs on aarch64. */
+            'steam': null,
+            // An AUR helper, on a system with no AUR.
+            'paru': null,
+
             /* No Debian package. usbkill is a script from its own repository,
                and anti-ducky covers the same ground here. */
             'usbkill': null
@@ -438,8 +474,6 @@
         gentoo: {
             'librewolf': { repo: 'librewolf', atom: 'www-client/librewolf',
                            note: "the LibreWolf project's own overlay" },
-            'vscodium': { repo: 'guru', atom: 'app-editors/vscodium',
-                          note: 'GURU, the user-contributed repository' },
             'ungoogled-chromium': { repo: 'guru', atom: 'www-client/ungoogled-chromium',
                                     note: 'GURU, the user-contributed repository' }
         }
@@ -910,6 +944,187 @@
         if (typeof root.osIdOf === 'function') return root.osIdOf(os);
         return Object.prototype.hasOwnProperty.call(TOOL_SUPPORT, os) ? os : 'arch';
     }
+
+    /* -- The post-install application catalogue ----------------------------
+       One list of what a reader can install after the first boot, and what
+       each of those means in packages.
+
+       It exists because the two front ends had drifted badly: the generator
+       offered 34 applications and the walkthrough 13, four of which the
+       generator did not have at all. The same tick meant different packages on
+       the two sides, and nothing noticed, because each front end kept its own
+       idea of what "the apps" were.
+
+       `pkgs` is the Arch package list. It is a list rather than a string so
+       every name can be translated for the target system through PKG_NAMES -
+       one tick can be several packages, and Debian and Gentoo split and merge
+       them differently from Arch.
+
+       `aur: true` marks the ones Arch does not carry itself. A system with no
+       AUR gets those looked up in its own repositories, or named as
+       unavailable there; it never gets a paru command it cannot run.
+
+       `cat` groups them the way the generator's grid already did, so the
+       walkthrough can present the same shape without forming a second opinion
+       about what belongs together. */
+    var APPS = [
+        { id: 'rofi',                label: 'Rofi',                icon: '🔍',   blurb: 'Launcher',      cat: 'core',      pkgs: ['rofi'], desc: 'Application launcher. On Wayland the equivalent is wofi.' },
+        { id: 'paru',                label: 'paru',                icon: '🦀',   blurb: 'AUR Helper',    cat: 'core',      pkgs: ['paru'], desc: 'AUR helper. Builds PKGBUILDs a stranger wrote, as your user.', aur: true },
+        { id: 'firefox',             label: 'Firefox',             icon: '🦊',   blurb: 'Browser',       cat: 'browser',   pkgs: ['firefox'] },
+        { id: 'librewolf',           label: 'LibreWolf',           icon: '🐺',   blurb: 'Privacy',       cat: 'browser',   pkgs: ['librewolf'], desc: 'Firefox with telemetry removed and defaults hardened.', aur: true },
+        { id: 'tor-browser',         label: 'Tor Browser',         icon: '🧅',   blurb: 'Anon',          cat: 'browser',   pkgs: ['tor-browser'], desc: 'Anonymity through Tor. Do not add extensions to it.', aur: true },
+        { id: 'chromium',            label: 'Chromium',            icon: '🔵',   blurb: 'Browser',       cat: 'browser',   pkgs: ['chromium'] },
+        { id: 'ungoogled-chromium',  label: 'Ungoogled Chromium',  icon: '🌐',   blurb: 'Browser',       cat: 'browser',   pkgs: ['ungoogled-chromium'], desc: 'Chromium with Google integration stripped out.', aur: true },
+        { id: 'signal',              label: 'Signal',              icon: '💬',   blurb: 'E2E Msg',       cat: 'security',  pkgs: ['signal-desktop'], desc: 'Proprietary server, open client. Excluded under a libre policy.', aur: true },
+        { id: 'keepassxc',           label: 'KeePassXC',           icon: '🔑',   blurb: 'Passwords',     cat: 'security',  pkgs: ['keepassxc'], desc: 'Offline password database. No sync, no account.' },
+        { id: 'clamav',              label: 'ClamAV',              icon: '🛡️',  blurb: 'Antivirus',     cat: 'security',  pkgs: ['clamav'], desc: 'Signature scanner. Catches Windows malware on shared storage.' },
+        { id: 'firejail',            label: 'Firejail',            icon: '🏰',   blurb: 'Sandbox',       cat: 'security',  pkgs: ['firejail'], desc: 'Sandboxes an application. Its own profiles can weaken it if edited carelessly.' },
+        { id: 'doas',                label: 'doas',              icon: '⚙️',  blurb: 'Privilege',     cat: 'security',  pkgs: ['opendoas'], desc: 'Smaller sudo. Replaces it through a wrapper so nothing else breaks.' },
+        { id: 'neovim',              label: 'Neovim',              icon: '📝',   blurb: 'Editor',        cat: 'dev',       pkgs: ['neovim', 'git', 'ripgrep', 'fd'], desc: 'Editor. Themed to match your palette.' },
+        { id: 'alacritty',           label: 'Alacritty',           icon: '⬛',   blurb: 'Terminal',      cat: 'dev',       pkgs: ['alacritty'], desc: 'GPU terminal, minimal.' },
+        { id: 'kitty',               label: 'kitty',               icon: '🐱',   blurb: 'Terminal',      cat: 'dev',       pkgs: ['kitty'], desc: 'GPU terminal. Themed to match your palette.' },
+        { id: 'zsh',                 label: 'Zsh',                 icon: '🐚',   blurb: 'Shell',         cat: 'dev',       pkgs: ['zsh', 'zsh-completions'] },
+        { id: 'vscodium',            label: 'VSCodium',            icon: '📘',   blurb: 'IDE',           cat: 'dev',       pkgs: ['vscodium'], desc: 'VS Code with Microsoft telemetry and branding removed.', aur: true },
+        { id: 'git',                 label: 'Git',                 icon: '🔀',   blurb: 'VCS',           cat: 'dev',       pkgs: ['git'], desc: 'Asks for your name and email.' },
+        { id: 'tmux',                label: 'tmux',                icon: '🪟',   blurb: 'Multiplex',     cat: 'dev',       pkgs: ['tmux'] },
+        { id: 'htop',                label: 'htop',                icon: '📊',   blurb: 'Monitor',       cat: 'dev',       pkgs: ['htop'] },
+        { id: 'pfetch',              label: 'pfetch',              icon: '🖥️',  blurb: 'Sysinfo',       cat: 'dev',       pkgs: ['pfetch'], desc: 'Sysinfo in POSIX shell. Instant, tiny, reports less than fastfetch.' },
+        { id: 'fastfetch',           label: 'fastfetch',           icon: '⚡',   blurb: 'Sysinfo',       cat: 'dev',       pkgs: ['fastfetch'], desc: 'Sysinfo in C. Reports more than pfetch and is larger.' },
+        { id: 'thunar',              label: 'Thunar',              icon: '📁',   blurb: 'Files',         cat: 'media',     pkgs: ['thunar', 'gvfs', 'thunar-volman'], desc: 'File manager. Lighter than Nautilus and pulls in no desktop.' },
+        { id: 'nautilus',            label: 'Nautilus',            icon: '📂',   blurb: 'Files',         cat: 'media',     pkgs: ['nautilus'], desc: 'GNOME Files. Brings GNOME libraries whether or not you run GNOME.' },
+        { id: 'mpv',                 label: 'mpv',                 icon: '▶️',  blurb: 'Player',        cat: 'media',     pkgs: ['mpv'] },
+        { id: 'vlc',                 label: 'VLC',                 icon: '🔶',   blurb: 'Player',        cat: 'media',     pkgs: ['vlc'] },
+        { id: 'obs',                 label: 'OBS Studio',          icon: '🎥',   blurb: 'Record',        cat: 'media',     pkgs: ['obs-studio'] },
+        { id: 'gimp',                label: 'GIMP',                icon: '🎨',   blurb: 'Images',        cat: 'media',     pkgs: ['gimp'] },
+        { id: 'libreoffice',         label: 'LibreOffice',         icon: '📄',   blurb: 'Office',        cat: 'media',     pkgs: ['libreoffice-fresh'] },
+        { id: 'flatpak',             label: 'Flatpak',             icon: '📦',   blurb: 'Apps',          cat: 'system',    pkgs: ['flatpak'], desc: 'Sandboxed application store, separate from pacman.' },
+        { id: 'networkmanager',      label: 'NetworkManager',      icon: '📡',   blurb: 'Network',       cat: 'system',    pkgs: ['networkmanager'], desc: 'Network management. Chosen already if you picked it above.' },
+        { id: 'bluetooth',           label: 'Bluetooth',           icon: '🔵',   blurb: 'bluez',         cat: 'system',    pkgs: ['bluez', 'bluez-utils'], desc: 'bluez plus its tools. Off until you enable the service.' },
+        { id: 'pipewire',            label: 'PipeWire',            icon: '🔊',   blurb: 'Audio',         cat: 'system',    pkgs: ['pipewire', 'pipewire-pulse', 'pipewire-alsa', 'wireplumber'], desc: 'Audio server, with PulseAudio and ALSA compatibility.' },
+        { id: 'openssh',             label: 'OpenSSH',             icon: '🔐',   blurb: 'SSH Server',    cat: 'system',    pkgs: ['openssh'], desc: 'Asks whether to permit root login and password auth.' },
+        { id: 'btop',                label: 'btop',                icon: '📊',   blurb: 'Monitor',       cat: 'dev',       pkgs: ['btop'] },
+        { id: 'docker',              label: 'Docker',              icon: '🐳',   blurb: 'Containers',    cat: 'system',    pkgs: ['docker'], desc: 'Asks whether to add you to the docker group, which is root-equivalent.' },
+        { id: 'steam',               label: 'Steam',               icon: '🎮',   blurb: 'Games',         cat: 'media',     pkgs: ['steam'], desc: 'Proprietary. Excluded under a libre policy.' },
+        { id: 'discord',             label: 'Discord',             icon: '💬',   blurb: 'Chat',          cat: 'media',     pkgs: ['discord'], desc: 'Proprietary. Excluded under a libre policy.' },
+    ];
+
+    /** Every application id, in catalogue order. */
+    function appIds() { return APPS.map(function (a) { return a.id; }); }
+
+    /** One catalogue entry, or null. */
+    function appById(id) {
+        for (var i = 0; i < APPS.length; i++) if (APPS[i].id === id) return APPS[i];
+        return null;
+    }
+
+    /**
+     * Arch package names for a set of application ids, de-duplicated.
+     * Order follows the catalogue rather than the order they were ticked, so
+     * the same selection always produces the same command.
+     */
+    function appPkgs(ids) {
+        var want = ids || [];
+        var out = [];
+        APPS.forEach(function (a) {
+            if (want.indexOf(a.id) === -1) return;
+            a.pkgs.forEach(function (pkg) { if (out.indexOf(pkg) === -1) out.push(pkg); });
+        });
+        return out;
+    }
+
+    /** Of those ids, the ones that only exist in the AUR. */
+    function appAurIds(ids) {
+        var want = ids || [];
+        return APPS.filter(function (a) {
+            return a.aur && want.indexOf(a.id) !== -1;
+        }).map(function (a) { return a.id; });
+    }
+
+    root.APPS = APPS;
+    root.appIds = appIds;
+    root.appById = appById;
+    root.appPkgs = appPkgs;
+    root.appAurIds = appAurIds;
+
+    /* ── Applications that do the same job as each other ────────────────────
+       Picking two of these is a legitimate choice and is never blocked. It is
+       also, far more often, someone ticking boxes down a list without noticing
+       that two of them overlap — and finding out later, when both greet them
+       at every shell or when the wrong one opens a folder.
+
+       So the reader is told, at the point of choosing, with the actual
+       difference rather than "you selected two". A warning that does not say
+       what distinguishes them leaves the reader exactly where they were.
+
+       One table because three places need it and they must not drift: the
+       generator's smart analysis, the walkthrough's note, and the wiki
+       section that explains the pair in full. `tests/app-overlap.mjs` holds
+       them together and checks every member is a real option. */
+    var APP_OVERLAP = [
+        {
+            id: 'fetch',
+            what: 'system information tools',
+            members: ['pfetch', 'fastfetch'],
+            compare: {
+                'pfetch': 'POSIX shell, no dependencies, a few kilobytes. It reads ' +
+                          '/proc and a handful of files, so it starts instantly and ' +
+                          'reports less.',
+                'fastfetch': 'Compiled C. Detects far more - GPU, display, packages ' +
+                             'across several managers - and is configured in JSON. ' +
+                             'Quick, and considerably larger than pfetch.'
+            },
+            note: 'Both print a logo and a summary when a shell opens, so running ' +
+                  'both means seeing two of them every time you open a terminal.',
+            wiki: 'fetch-tools'
+        },
+        {
+            id: 'file-manager',
+            what: 'graphical file managers',
+            members: ['thunar', 'nautilus'],
+            compare: {
+                'thunar': 'Xfce\'s file manager. Light, fast, and does not pull a ' +
+                          'desktop environment in behind it. Bulk rename and custom ' +
+                          'actions are its own.',
+                'nautilus': 'GNOME Files. Better integrated if you run GNOME, and it ' +
+                            'brings GNOME libraries with it whether or not you do.'
+            },
+            note: 'Only one can be the handler that opens when something asks for a ' +
+                  'folder. The other is a second copy of the same job, which is fine ' +
+                  'if you meant it.',
+            wiki: 'file-managers'
+        }
+    ];
+
+    /**
+     * Overlapping groups the reader has picked more than one member of.
+     * @param {string[]} chosen  application ids that are selected
+     */
+    function appOverlaps(chosen) {
+        var picked = chosen || [];
+        var out = [];
+        APP_OVERLAP.forEach(function (group) {
+            var hit = group.members.filter(function (m) {
+                return picked.indexOf(m) !== -1;
+            });
+            if (hit.length > 1) out.push({ group: group, selected: hit });
+        });
+        return out;
+    }
+
+    /** One sentence naming the overlap, then what actually separates them. */
+    function appOverlapText(overlap) {
+        var g = overlap.group;
+        var lines = ['You have selected ' + overlap.selected.length + ' ' + g.what +
+                     ': ' + overlap.selected.join(' and ') + '. ' + g.note];
+        overlap.selected.forEach(function (m) {
+            if (g.compare[m]) lines.push(m + ' - ' + g.compare[m]);
+        });
+        return lines;
+    }
+
+    root.APP_OVERLAP = APP_OVERLAP;
+    root.appOverlaps = appOverlaps;
+    root.appOverlapText = appOverlapText;
 
     root.TOOL_SUPPORT = TOOL_SUPPORT;
     root.osToolSupport = toolSupport;

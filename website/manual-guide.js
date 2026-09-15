@@ -156,15 +156,41 @@
         return p;
     }
 
+    /* Applications the reader ticked, turned into packages.
+     *
+     * The tick and the package are not the same thing and never were: one
+     * `bluetooth` is `bluez` and `bluez-utils`, one `pipewire` is four
+     * packages, and `obs` is `obs-studio`. This side used to pass the tick
+     * straight through as a package name, which worked only because its list
+     * happened to hold thirteen ids that were also package names. The
+     * catalogue in os-install.js is what knows the difference.
+     *
+     * Repository and AUR are separated here rather than at the point of
+     * printing, because they are different commands with different risks, and
+     * a system with no AUR has to be told which of its choices it cannot have.
+     */
     function postPackages(s, f) {
         let apps = (s.apps || []).slice();
         if (f.libre) apps = apps.filter(a => LIBRE_BLOCKED.indexOf(a) === -1);
+
+        const cat = (typeof window !== 'undefined' && window.appPkgs) ? window : null;
+        const aurIds = cat ? cat.appAurIds(apps) : [];
+        const repoIds = apps.filter(a => aurIds.indexOf(a) === -1);
+
         const extra = [];
         if (s.firewall === 'ufw') extra.push('ufw');
         if (s.firewall === 'nftables') extra.push('nftables');
         if (s.snapshots === 'snapper') extra.push('snapper', 'snap-pac');
         if (s.snapshots === 'timeshift') extra.push('timeshift');
-        return { apps: apps, extra: extra };
+        return {
+            // The ids, for anything that needs to talk about the choice.
+            ids: apps,
+            aurIds: aurIds,
+            // The packages, which is what an install command actually takes.
+            apps: cat ? cat.appPkgs(repoIds) : repoIds,
+            aur: cat ? cat.appPkgs(aurIds) : aurIds,
+            extra: extra
+        };
     }
 
     /* ── Systems that ship an image rather than an installer ─────────────────
@@ -1492,7 +1518,7 @@
         /* ── 8. Post-install ── */
         const dpkgs = desktopPackages(s, f);
         const post = postPackages(s, f);
-        if (dpkgs.length || post.apps.length || post.extra.length) {
+        if (dpkgs.length || post.apps.length || post.aur.length || post.extra.length) {
             L.push('## 8. After the first boot');
             L.push('');
             L.push('Do this from the installed system, logged in as `' + esc(s.username) + '`.');
@@ -1514,6 +1540,47 @@
             }
             L.push('```');
             L.push('');
+
+            /* Anything Arch does not carry itself. A separate block and a
+               separate command, because it is a separate decision: these are
+               built from a script somebody else wrote, running as you. */
+            if (post.aur.length) {
+                if (M && M.aur) {
+                    L.push('These are not in the official repositories. They come from the');
+                    L.push('AUR, which means a build script a stranger wrote runs as your');
+                    L.push('user before anything is installed.');
+                    L.push('');
+                    L.push('```bash');
+                    L.push('paru -S --needed \\');
+                    L.push('    ' + post.aur.join(' '));
+                    L.push('```');
+                    L.push('');
+                } else {
+                    /* No AUR here. Say which choices that removes by name
+                       rather than dropping them out of the list silently -
+                       the reader ticked them and is owed the reason. */
+                    const mappedAur = (typeof window !== 'undefined' && window.osPkgNames)
+                        ? window.osPkgNames(osKey, post.aur) : [];
+                    const goneAur = (typeof window !== 'undefined' && window.osPkgUnavailable)
+                        ? window.osPkgUnavailable(osKey, post.aur) : [];
+                    if (mappedAur.length) {
+                        L.push('These come from the AUR on Arch. ' + os.label + ' has no AUR,');
+                        L.push('and carries them in its own repositories instead:');
+                        L.push('');
+                        L.push('```bash');
+                        L.push('sudo ' + M.install(mappedAur));
+                        L.push('```');
+                        L.push('');
+                    }
+                    if (goneAur.length) {
+                        L.push('> Not available on ' + os.label + ', so they are not installed:');
+                        L.push('> `' + goneAur.join('`, `') + '`. They are AUR packages on Arch');
+                        L.push('> and this system has no equivalent — the authority for what it');
+                        L.push('> does have is ' + os.docsName + ': <' + os.docs + '>.');
+                        L.push('');
+                    }
+                }
+            }
             if (M && M.family === 'gentoo') {
                 L.push('> Names without a category are Gentoo atoms this guide does not yet');
                 L.push('> map. Check each against <https://packages.gentoo.org/> before');
@@ -1816,10 +1883,27 @@
                installer already has --from-source; use it, and take the
                toolchain as a dependency rather than a surprise. */
             const fromSource = M && M.kernel && M.kernel.compiled;
-            L.push('sudo bash install.sh --only ' + (s.security_tools || []).join(',') +
+            /* Separate binaries or the one that carries them all. The same
+               choice the generator has always offered; this side asks it now
+               rather than deciding for the reader. */
+            const asSuite = s.security_tools_packaging === 'suite';
+            L.push('sudo bash install.sh --only ' +
+                   (asSuite ? 'unix-security-suite' : (s.security_tools || []).join(',')) +
                    (fromSource ? ' --from-source' : ''));
             L.push('```');
             L.push('');
+            if (asSuite) {
+                L.push('> One binary, `unix-security-suite`, which dispatches to whichever');
+                L.push('> tool you invoke — so there is one hash and one signature to check');
+                L.push('> rather than ' + (s.security_tools || []).length + ', and one file to');
+                L.push('> keep updated. It carries every tool whether or not you enable them,');
+                L.push('> which is the trade: less to verify, more on the disk.');
+                L.push('');
+                L.push('> Each tool still has to be configured and enabled separately. The');
+                L.push('> suite changes how they arrive, not what they do — and nothing here');
+                L.push('> is enabled by installing it.');
+                L.push('');
+            }
             if (fromSource) {
                 L.push('> **Built here, from source.** You chose a system that compiles its');
                 L.push('> own software, so the installer is told to do the same rather than');

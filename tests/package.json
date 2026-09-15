@@ -10,7 +10,7 @@
     "cliflags": "node cli-flags.mjs ..",
     "selects": "node select-options.mjs ../website",
     "osvariants": "node os-variants.mjs ../website",
-    "test": "npm run permutations && npm run responsive && npm run translate && npm run parity && npm run wiki && npm run dusky && npm run legal && npm run emoji && npm run markdown && npm run palette && npm run live && npm run runtime && npm run cliflags && npm run selects && npm run osvariants && npm run osperms && npm run genos && npm run genvalid && npm run pkgnames && npm run searchscope && npm run names && npm run toolsupport && npm run rustsafety && npm run shellcheck && npm run stray && npm run html",
+    "test": "npm run permutations && npm run responsive && npm run translate && npm run parity && npm run wiki && npm run dusky && npm run legal && npm run emoji && npm run markdown && npm run palette && npm run live && npm run runtime && npm run cliflags && npm run selects && npm run osvariants && npm run osperms && npm run genos && npm run genvalid && npm run pkgnames && npm run searchscope && npm run appparity && npm run appoverlap && npm run names && npm run toolsupport && npm run rustsafety && npm run shellcheck && npm run stray && npm run html",
     "translate": "node config-translate.mjs",
     "parity": "node parity-five-installs.mjs ../website",
     "runtime": "node page-runtime-audit.mjs ../website",
@@ -28,6 +28,8 @@
     "genvalid": "node generator-validation.mjs ../website",
     "pkgnames": "node pkg-names.mjs ../website",
     "searchscope": "node search-scope.mjs ../website",
+    "appparity": "node app-parity.mjs ../website",
+    "appoverlap": "node app-overlap.mjs ../website",
     "stray": "node stray-characters.mjs ..",
     "shellcheck": "node shellcheck-emitted.mjs ../website",
     "rustsafety": "node rust-safety.mjs .."

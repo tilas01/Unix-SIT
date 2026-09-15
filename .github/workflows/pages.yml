@@ -254,6 +254,19 @@ jobs:
         run: npm run searchscope
         working-directory: tests
 
+      # The two front ends must offer the same applications, and one tick must
+      # mean the same packages on both. They had drifted to 34 against 13, with
+      # the same id meaning different packages on each side.
+      - name: "Test: both front ends offer the same applications"
+        run: npm run appparity
+        working-directory: tests
+
+      # Two programs that do the same job are allowed and are said out loud,
+      # with what actually separates them, in all three places that mention it.
+      - name: "Test: overlapping applications are explained consistently"
+        run: npm run appoverlap
+        working-directory: tests
+
       # Retired names must stay retired. anti-ducky's rename half-reverted once
       # and left a journalctl line naming a unit that never existed.
       - name: "Test: naming parity"

@@ -932,6 +932,20 @@ const selectedPostApps = Array.from(document.querySelectorAll('input[name="post_
         if (hibernate && swapType === 'none') {
             hardErrors.push("Hibernation requires a Swap file or partition. Please enable Swap.");
         }
+
+        /* Two applications that do the same job. Never blocked - it is a
+           legitimate thing to want - but said out loud with the actual
+           difference, because far more often it is somebody working down a
+           list who has not noticed the overlap. The table is in os-install.js
+           so this notice, the walkthrough's and the wiki's cannot drift. */
+        if (typeof window.appOverlaps === 'function') {
+            const chosenApps = Array.from(
+                document.querySelectorAll('input[name="post_apps"]:checked')
+            ).map(cb => cb.value);
+            window.appOverlaps(chosenApps).forEach(o => {
+                smartWarnings.push(window.appOverlapText(o).join(' '));
+            });
+        }
         
         // 2. BTRFS without btrfs-progs (Usually installed by base, but good to check conceptually)
         // 3. Custom Firewall with Endlessh
@@ -2300,22 +2314,24 @@ run_with_progress() {
         /* Apps, as lists of Arch package names. Lists rather than strings so
            each name can be translated for the target system; joined back with a
            space, Arch's command is the string it always was. */
-        const aurApps = ['librewolf','signal','tor-browser','vscodium','timeshift','ungoogled-chromium'];
-        const pacApps = {
-            firefox:['firefox'], neovim:['neovim','git','ripgrep','fd'], alacritty:['alacritty'],
-            zsh:['zsh','zsh-completions'], thunar:['thunar','gvfs','thunar-volman'], mpv:['mpv'],
-            obs:['obs-studio'], keepassxc:['keepassxc'], flatpak:['flatpak'],
-            chromium:['chromium'], kitty:['kitty'], git:['git'], tmux:['tmux'], htop:['htop'],
-            nautilus:['nautilus'], vlc:['vlc'], gimp:['gimp'], libreoffice:['libreoffice-fresh'],
-            networkmanager:['networkmanager'], bluetooth:['bluez','bluez-utils'],
-            pipewire:['pipewire','pipewire-pulse','pipewire-alsa','wireplumber'],
-            clamav:['clamav'], firejail:['firejail'], doas:['opendoas'],
-            openssh:['openssh'], snapper:['snapper','snap-pac','grub-btrfs'],
-            pfetch:['pfetch'], fastfetch:['fastfetch'],
-        };
+        /* Applications and their packages come from the catalogue in
+           os-install.js, which the walkthrough reads too.
+
+           They used to be two tables in two files. The generator offered 34
+           applications and the walkthrough 13, the same tick meant different
+           packages on the two sides, and an application missing from this
+           table was skipped in silence - a checkbox that installed nothing and
+           reported nothing, which is this project's oldest defect wearing a
+           different hat. `tests/app-parity.mjs` now fails if the two lists
+           diverge again. */
+        const CATALOGUE = window.APPS || [];
+        const aurApps = CATALOGUE.filter(a => a.aur).map(a => a.id);
+        const pacApps = {};
+        CATALOGUE.forEach(a => { if (!a.aur) pacApps[a.id] = a.pkgs; });
+
         /* The AUR name each of these has, where it differs from the option id.
            Also the name looked up in another system's repositories. */
-        const aurPkgName = { signal: 'signal-desktop', 'ungoogled-chromium': 'ungoogled-chromium-bin' };
+        const aurPkgName = { 'ungoogled-chromium': 'ungoogled-chromium-bin' };
         let overlaysNeeded = [];
         post_apps.forEach(app => {
             if (app === 'paru') return; // already installed
@@ -2342,7 +2358,19 @@ run_with_progress() {
                 else o += `# ${app}: no ${osLabel} package and no overlay carrying it.\n`;
                 return;
             }
-            if (!pacApps[app]) return;
+            if (!pacApps[app]) {
+                /* Not in the catalogue. Previously this returned silently and
+                   the tick did nothing at all; saying so in the script is the
+                   difference between a bug the reader can see and one they
+                   cannot. app-parity makes it unreachable, and it stays here
+                   because an unreachable branch that fails loudly costs
+                   nothing and an absent one costs a silent install. */
+                o += `# '${app}' is selected but is not in the application catalogue,
+`;
+                o += `# so nothing was emitted for it. Please report this.
+`;
+                return;
+            }
             const mapped = pkgsOf(pacApps[app]);
             if (mapped.length) o += `${inst(pacApps[app])}\n`;
             const gone = window.osPkgUnavailable ? window.osPkgUnavailable(modelKey, pacApps[app]) : [];
@@ -4683,6 +4711,19 @@ function validateConfigurations() {
     // then warned in the same breath that Wayland would break it.
     if (displayServer === 'wayland' && desktop === 'dwm') warnings.push("⚠️ dwm requires X11/Xorg. Wayland will break it.");
     if (displayServer === 'xorg' && (desktop === 'dusky' || desktop === 'hyprland')) warnings.push(`⚠️ ${desktop === 'dusky' ? 'Dusky' : 'Hyprland'} requires Wayland. Hyprland has no Xorg backend.`);
+
+    /* Two applications that do the same job, noticed as the boxes are ticked
+       rather than only once the guide is generated. This is the analysis the
+       reader is actually watching, so it is where the notice belongs; the same
+       text also goes into the generated guide, from the same table. */
+    if (typeof window.appOverlaps === 'function') {
+        const tickedApps = Array.from(
+            document.querySelectorAll('input[name="post_apps"]:checked')
+        ).map(cb => cb.value);
+        window.appOverlaps(tickedApps).forEach(o => {
+            warnings.push('ℹ️ ' + window.appOverlapText(o).join(' '));
+        });
+    }
 
     window.smartAnalysisWarnings = warnings;
     const div = document.getElementById('global-warnings');

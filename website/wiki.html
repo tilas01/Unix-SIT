@@ -1679,6 +1679,74 @@ udevadm control --reload-rules</code></pre>
 
     </section>
 
+    <!-- ══ Overlapping applications ══════════════════════════════════════
+         Two programs that do the same job. Selecting both is allowed and is
+         sometimes meant; far more often it is somebody working down a list of
+         checkboxes. The generator and the walkthrough both say so at the point
+         of choosing, and these two sections are what they link to. The
+         comparison text lives in os-install.js so all three agree. -->
+    <div class="section" id="fetch-tools">
+        <h2><span class="icon">🖥️</span> pfetch or fastfetch</h2>
+        <p>
+            Both print a small logo and a summary of the machine, and both are
+            usually wired into the shell so they run when a terminal opens.
+            Choosing both means seeing two of them every time.
+        </p>
+        <h3>pfetch</h3>
+        <p>
+            POSIX shell, no dependencies, a few kilobytes. It reads
+            <code>/proc</code> and a handful of files, so it starts instantly
+            and reports less. Nothing to compile, nothing to keep updated, and
+            it runs on anything with a shell — which is why it is the default
+            under the libre policy.
+        </p>
+        <h3>fastfetch</h3>
+        <p>
+            Compiled C. Detects considerably more — GPU, display, packages
+            across several managers at once — and is configured in JSON rather
+            than by editing the script. It is the actively maintained answer to
+            neofetch, which is no longer developed.
+        </p>
+        <p>
+            <strong>Which to take.</strong> If the summary is decoration at
+            shell start, pfetch costs nothing and never breaks. If you actually
+            read the hardware lines, fastfetch knows more of them. Neither is
+            a security decision, and neither is worth having twice.
+        </p>
+    </div>
+
+    <div class="section" id="file-managers">
+        <h2><span class="icon">📁</span> Thunar or Nautilus</h2>
+        <p>
+            Two graphical file managers. Installing both works, and the desktop
+            will pick one as the handler that opens when something asks for a
+            folder — the other then sits there as a second copy of the same
+            job. That is fine if you meant it and confusing if you did not.
+        </p>
+        <h3>Thunar</h3>
+        <p>
+            Xfce's file manager. Light, quick to start, and it does not pull a
+            desktop environment in behind it, which matters on a window-manager
+            setup. Bulk rename and custom actions are its own and are genuinely
+            good. Wants <code>gvfs</code> and <code>thunar-volman</code>
+            alongside it for removable media, and the generator installs those
+            with it.
+        </p>
+        <h3>Nautilus</h3>
+        <p>
+            GNOME Files. Better integrated if you are running GNOME — the
+            search, the trash and the portal all behave as the rest of the
+            desktop expects — and it brings GNOME libraries with it whether or
+            not you run GNOME.
+        </p>
+        <p>
+            <strong>Which to take.</strong> Running GNOME, take Nautilus.
+            Running anything else, Thunar is the smaller dependency by a wide
+            margin. On a tiling window manager many people run neither and use
+            a terminal file manager instead.
+        </p>
+    </div>
+
     <!-- ══ Architecture ══════════════════════════════════════════════════ -->
     <div class="section" id="architecture">
         <h2><span class="icon">🧩</span> CPU Architecture: x86_64 or aarch64</h2>

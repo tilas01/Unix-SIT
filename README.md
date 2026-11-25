@@ -1,4 +1,14 @@
-<!-- Author: tilas01 | Main Developer & Maintainer -->
+<!-- Author: tilas01 | Main Devhttps://github.com/tilas01/Unix-SIT/tree/maineloper & Maintainer -->
+
+# This repository will be temporarily *UNMAINTAINED*, *ARCHIVED* and is currently *NOT FUNCTIONAL*.
+
+This Repository is no longer maintained or functional. Please do not use.
+
+Once this message is removed and this repo is no longer an archived repository, all maintenance will continue.
+
+Thank you,
+
+[~tilas01](https://www.github.com/tilas01)
 
 <p align="center">
   <img src="img/banners/unix-guides.png" width="100%" alt="*nix Install Guides banner">
